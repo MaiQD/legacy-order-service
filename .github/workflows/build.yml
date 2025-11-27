@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore LegacyOrderService/LegacyOrderService.csproj
+      
+      - name: Build
+        run: dotnet build LegacyOrderService/LegacyOrderService.csproj --no-restore --configuration Release
+
