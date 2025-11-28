@@ -1,4 +1,6 @@
 using FluentAssertions;
+using FluentValidation;
+using LegacyOrderService.Constants;
 using LegacyOrderService.Data;
 using LegacyOrderService.Models;
 using LegacyOrderService.Services;
@@ -24,7 +26,7 @@ public class OrderServiceTests
     {
         // Arrange
         const string customerName = "John Doe";
-        const string productName = "Widget";
+        const string productName = ProductNames.Widget;
         const int quantity = 5;
         const double expectedPrice = 12.99;
 
@@ -49,7 +51,7 @@ public class OrderServiceTests
     {
         // Arrange
         const string customerName = "Jane Smith";
-        const string productName = "Gadget";
+        const string productName = ProductNames.Gadget;
         const int quantity = 3;
         const double expectedPrice = 15.49;
 
@@ -69,7 +71,7 @@ public class OrderServiceTests
     {
         // Arrange
         const string customerName = "Bob Johnson";
-        const string productName = "Doohickey";
+        const string productName = ProductNames.Doohickey;
         const int quantity = 10;
         const double expectedPrice = 8.75;
 
@@ -87,6 +89,56 @@ public class OrderServiceTests
             o.Quantity == quantity &&
             o.Price == expectedPrice
         )), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ProcessOrderAsync_InvalidCustomerName_ThrowsValidationException(string? customerName)
+    {
+        // Arrange
+        const string productName = ProductNames.Widget;
+        const int quantity = 5;
+
+        // Act
+        var act = async () => await _orderService.ProcessOrderAsync(customerName!, productName, quantity);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ProcessOrderAsync_InvalidProductName_ThrowsValidationException(string? productName)
+    {
+        // Arrange
+        const string customerName = "John Doe";
+        const int quantity = 5;
+
+        // Act
+        var act = async () => await _orderService.ProcessOrderAsync(customerName, productName!, quantity);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task ProcessOrderAsync_InvalidQuantity_ThrowsValidationException(int quantity)
+    {
+        // Arrange
+        const string customerName = "John Doe";
+        const string productName = ProductNames.Widget;
+
+        // Act
+        var act = async () => await _orderService.ProcessOrderAsync(customerName, productName, quantity);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
     }
 }
 

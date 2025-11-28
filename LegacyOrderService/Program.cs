@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using LegacyOrderService.Data;
@@ -33,20 +34,41 @@ namespace LegacyOrderService
             string product = Console.ReadLine() ?? string.Empty;
 
             Console.WriteLine("Enter quantity:");
-            int qty = Convert.ToInt32(Console.ReadLine());
+            string? quantityInput = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(quantityInput) || !int.TryParse(quantityInput, out int qty))
+            {
+                Console.WriteLine("Error: Quantity must be a valid integer.");
+                return;
+            }
 
             Console.WriteLine("Processing order...");
 
             var orderService = serviceProvider.GetRequiredService<OrderService>();
 
-            var order = await orderService.ProcessOrderAsync(name, product, qty);
+            try
+            {
+                var order = await orderService.ProcessOrderAsync(name, product, qty);
 
-            Console.WriteLine("Order complete!");
-            Console.WriteLine("Customer: " + order.CustomerName);
-            Console.WriteLine("Product: " + order.ProductName);
-            Console.WriteLine("Quantity: " + order.Quantity);
-            Console.WriteLine("Total: $" + order.Total);
-            Console.WriteLine("Done.");
+                Console.WriteLine("Order complete!");
+                Console.WriteLine("Customer: " + order.CustomerName);
+                Console.WriteLine("Product: " + order.ProductName);
+                Console.WriteLine("Quantity: " + order.Quantity);
+                Console.WriteLine("Total: $" + order.Total);
+                Console.WriteLine("Done.");
+            }
+            catch (ValidationException ex)
+            {
+                Console.WriteLine("Validation errors:");
+                foreach (var error in ex.Errors)
+                {
+                    Console.WriteLine($"  - {error.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing order: {ex.Message}");
+            }
         }
     }
 }
