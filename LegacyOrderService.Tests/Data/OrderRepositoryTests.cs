@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentValidation;
 using LegacyOrderService.Configuration;
 using LegacyOrderService.Data;
 using LegacyOrderService.Models;
@@ -108,6 +109,80 @@ public class OrderRepositoryTests : IDisposable
         countCommand.CommandText = "SELECT COUNT(*) FROM Orders";
         var count = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
         count.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task SaveAsync_NullOrder_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Order? order = null;
+
+        // Act
+        var act = async () => await _orderRepository.SaveAsync(order!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("order");
+    }
+
+    [Theory]
+    [InlineData("", "Test Product")]
+    [InlineData("Test Customer", "")]
+    public async Task SaveAsync_EmptyStringProperty_ThrowsValidationException(string customerName, string productName)
+    {
+        // Arrange
+        var order = new Order
+        {
+            CustomerName = customerName,
+            ProductName = productName,
+            Quantity = 5,
+            Price = 10.99
+        };
+
+        // Act
+        var act = async () => await _orderRepository.SaveAsync(order);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task SaveAsync_InvalidQuantity_ThrowsValidationException(int quantity)
+    {
+        // Arrange
+        var order = new Order
+        {
+            CustomerName = "Test Customer",
+            ProductName = "Test Product",
+            Quantity = quantity,
+            Price = 10.99
+        };
+
+        // Act
+        var act = async () => await _orderRepository.SaveAsync(order);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task SaveAsync_NegativePrice_ThrowsValidationException()
+    {
+        // Arrange
+        var order = new Order
+        {
+            CustomerName = "Test Customer",
+            ProductName = "Test Product",
+            Quantity = 5,
+            Price = -1.0
+        };
+
+        // Act
+        var act = async () => await _orderRepository.SaveAsync(order);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
     }
 
     public void Dispose()
