@@ -8,18 +8,22 @@ namespace LegacyOrderService.Data
         private string _connectionString = $"Data Source={Path.Combine(AppContext.BaseDirectory, "orders.db")}";
 
 
-        public void Save(Order order)
+        public async Task SaveAsync(Order order)
         {
-            var connection = new SqliteConnection(_connectionString);
-            
-            connection.Open();
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync();
 
-            var command = connection.CreateCommand();
-            command.CommandText = $@"
+            await using var command = connection.CreateCommand();
+            command.CommandText = @"
                 INSERT INTO Orders (CustomerName, ProductName, Quantity, Price)
-                VALUES ('{order.CustomerName}', '{order.ProductName}', {order.Quantity}, {order.Price})";
+                VALUES (@CustomerName, @ProductName, @Quantity, @Price)";
+            
+            command.Parameters.AddWithValue("@CustomerName", order.CustomerName);
+            command.Parameters.AddWithValue("@ProductName", order.ProductName);
+            command.Parameters.AddWithValue("@Quantity", order.Quantity);
+            command.Parameters.AddWithValue("@Price", order.Price);
 
-            command.ExecuteNonQuery();            
+            await command.ExecuteNonQueryAsync();
         }
 
         public void SeedBadData()
