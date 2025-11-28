@@ -3,7 +3,7 @@ using LegacyOrderService.Models;
 
 namespace LegacyOrderService.Data
 {
-    public class OrderRepository
+    public class OrderRepository : IOrderRepository
     {
         private string _connectionString = $"Data Source={Path.Combine(AppContext.BaseDirectory, "orders.db")}";
 
