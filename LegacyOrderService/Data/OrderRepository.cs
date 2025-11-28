@@ -1,12 +1,26 @@
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Options;
 using LegacyOrderService.Models;
+using LegacyOrderService.Configuration;
 
 namespace LegacyOrderService.Data
 {
     public class OrderRepository : IOrderRepository
     {
-        private string _connectionString = $"Data Source={Path.Combine(AppContext.BaseDirectory, "orders.db")}";
+        private readonly string _connectionString;
 
+        public OrderRepository(IOptions<DatabaseOptions> options)
+        {
+            var connectionString = options.Value.DefaultConnection;
+            var builder = new SqliteConnectionStringBuilder(connectionString);
+            
+            if (!string.IsNullOrEmpty(builder.DataSource) && !Path.IsPathRooted(builder.DataSource))
+            {
+                builder.DataSource = Path.Combine(AppContext.BaseDirectory, builder.DataSource);
+            }
+            
+            _connectionString = builder.ConnectionString;
+        }
 
         public async Task SaveAsync(Order order)
         {
