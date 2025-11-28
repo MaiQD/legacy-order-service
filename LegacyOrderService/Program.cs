@@ -1,4 +1,3 @@
-using System;
 using LegacyOrderService.Models;
 using LegacyOrderService.Data;
 
@@ -27,7 +26,7 @@ namespace LegacyOrderService
             order.CustomerName = name;
             order.ProductName = product;
             order.Quantity = qty;
-            order.Price = 10.0;
+            order.Price = price;
 
             double total = order.Quantity * order.Price;
 
@@ -35,7 +34,7 @@ namespace LegacyOrderService
             Console.WriteLine("Customer: " + order.CustomerName);
             Console.WriteLine("Product: " + order.ProductName);
             Console.WriteLine("Quantity: " + order.Quantity);
-            Console.WriteLine("Total: $" + price);
+            Console.WriteLine("Total: $" + total);
 
             Console.WriteLine("Saving order to database...");
             var repo = new OrderRepository();
