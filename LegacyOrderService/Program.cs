@@ -5,7 +5,7 @@ namespace LegacyOrderService
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Welcome to Order Processor!");
             Console.WriteLine("Enter customer name:");
@@ -38,7 +38,7 @@ namespace LegacyOrderService
 
             Console.WriteLine("Saving order to database...");
             var repo = new OrderRepository();
-            repo.Save(order);
+            await repo.SaveAsync(order);
             Console.WriteLine("Done.");
         }
     }
