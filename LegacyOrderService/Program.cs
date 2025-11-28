@@ -1,5 +1,8 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using LegacyOrderService.Data;
 using LegacyOrderService.Services;
+using LegacyOrderService.Configuration;
 
 namespace LegacyOrderService
 {
@@ -7,6 +10,21 @@ namespace LegacyOrderService
     {
         static async Task Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var services = new ServiceCollection();
+
+            services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
+            services.AddTransient<IOrderRepository, OrderRepository>();
+            services.AddTransient<IProductRepository, ProductRepository>();
+            services.AddTransient<OrderService>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
             Console.WriteLine("Welcome to Order Processor!");
             Console.WriteLine("Enter customer name:");
             string name = Console.ReadLine() ?? string.Empty;
@@ -19,9 +37,7 @@ namespace LegacyOrderService
 
             Console.WriteLine("Processing order...");
 
-            var orderRepository = new OrderRepository();
-            var productRepository = new ProductRepository();
-            var orderService = new OrderService(orderRepository, productRepository);
+            var orderService = serviceProvider.GetRequiredService<OrderService>();
 
             var order = await orderService.ProcessOrderAsync(name, product, qty);
 
