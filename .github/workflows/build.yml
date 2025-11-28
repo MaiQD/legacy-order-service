@@ -18,8 +18,11 @@ jobs:
           dotnet-version: '8.0.x'
       
       - name: Restore dependencies
-        run: dotnet restore LegacyOrderService/LegacyOrderService.csproj
+        run: dotnet restore LegacyOrder.sln
       
       - name: Build
-        run: dotnet build LegacyOrderService/LegacyOrderService.csproj --no-restore --configuration Release
+        run: dotnet build LegacyOrder.sln --no-restore --configuration Release
+      
+      - name: Run tests
+        run: dotnet test LegacyOrder.sln --no-build --configuration Release --verbosity normal
 
