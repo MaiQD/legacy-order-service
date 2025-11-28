@@ -1,5 +1,5 @@
-using LegacyOrderService.Models;
 using LegacyOrderService.Data;
+using LegacyOrderService.Services;
 
 namespace LegacyOrderService
 {
@@ -9,36 +9,27 @@ namespace LegacyOrderService
         {
             Console.WriteLine("Welcome to Order Processor!");
             Console.WriteLine("Enter customer name:");
-            string name = Console.ReadLine();
+            string name = Console.ReadLine() ?? string.Empty;
 
             Console.WriteLine("Enter product name:");
-            string product = Console.ReadLine();
-            var productRepo = new ProductRepository();
-            double price = productRepo.GetPrice(product);
-
+            string product = Console.ReadLine() ?? string.Empty;
 
             Console.WriteLine("Enter quantity:");
             int qty = Convert.ToInt32(Console.ReadLine());
 
             Console.WriteLine("Processing order...");
 
-            Order order = new Order();
-            order.CustomerName = name;
-            order.ProductName = product;
-            order.Quantity = qty;
-            order.Price = price;
+            var orderRepository = new OrderRepository();
+            var productRepository = new ProductRepository();
+            var orderService = new OrderService(orderRepository, productRepository);
 
-            double total = order.Quantity * order.Price;
+            var order = await orderService.ProcessOrderAsync(name, product, qty);
 
             Console.WriteLine("Order complete!");
             Console.WriteLine("Customer: " + order.CustomerName);
             Console.WriteLine("Product: " + order.ProductName);
             Console.WriteLine("Quantity: " + order.Quantity);
-            Console.WriteLine("Total: $" + total);
-
-            Console.WriteLine("Saving order to database...");
-            var repo = new OrderRepository();
-            await repo.SaveAsync(order);
+            Console.WriteLine("Total: $" + order.Total);
             Console.WriteLine("Done.");
         }
     }
